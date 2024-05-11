@@ -506,8 +506,7 @@ Proses induk menutup ujung penulisan dari pipe (fd[1]) karena proses induk tidak
 
 <img width="722" alt="Screenshot 2024-05-11 at 20 58 04" src="https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/147926732/9c560390-3007-4aea-9bc0-060b604ddc11">
 
-<img width="1202" alt="Screenshot 2024-05-11 at 20 58 44" src="https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/147926732/4b0c624f-540f-4cd5-81fb-de6af906ea62">
-
+<img width="878" alt="Screenshot 2024-05-11 at 21 30 21" src="https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/147926732/4126f883-0b8a-4957-8a5d-d44d652aa7bb">
 
 
 ## Soal 3
@@ -1049,6 +1048,14 @@ Kemudian, koneksi ke server dilakukan menggunakan fungsi connect(). Jika koneksi
 Setelah koneksi berhasil dibuat, argumen dari baris perintah (argv) yang diberikan oleh pengguna diambil. Perintah dan informasi dari argumen tersebut kemudian dikirimkan ke server menggunakan fungsi send_command. Setelah itu, respons dari server diterima menggunakan fungsi receive_response. Terakhir, soket client ditutup dan program keluar dengan kode berhasil.
 
 ### Hasil Pengerjaan Soal 3
+
+<img width="1346" alt="Screenshot 2024-05-11 at 21 26 25" src="https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/147926732/a0956504-3be7-4781-9dd1-1e2786ef34f8">
+
+<img width="1349" alt="Screenshot 2024-05-11 at 21 27 21" src="https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/147926732/cb75703d-8f67-4a37-b0d0-071ae9c3572c">
+
+
+<img width="606" alt="Screenshot 2024-05-11 at 21 29 32" src="https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/147926732/2b05ebcd-b1c6-43be-995f-f2fead2208bc">
+
 
 
 ## Soal 4
