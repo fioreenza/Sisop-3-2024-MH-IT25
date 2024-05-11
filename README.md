@@ -33,17 +33,17 @@ Contoh dari nama file yang akan diautentikasi:
 
 b. Format data (Kolom)  yang berada dalam file csv adalah seperti berikut:
 
-
+![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/86243a49-4395-42dc-8b54-5a2168a74c48)
 
 atau
 
-
+![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/0c1d57cc-b3ca-4e42-b1b9-b21e12e1c1ec)
 
 c. File csv yang lolos tahap autentikasi akan dikirim ke shared memory. 
 
 d. Dalam **rate.c**, proses akan mengambil data csv dari shared memory dan akan memberikan output Tempat Sampah dan Parkiran dengan Rating Terbaik dari data tersebut.
 
-
+![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/2cc5e160-3111-4898-a735-048d5ce8ee22)
 
 e. Pada **db.c**, proses bisa memindahkan file dari **new-data** ke folder **microservices/database**, **WAJIB MENGGUNAKAN SHARED MEMORY**.
 
