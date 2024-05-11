@@ -504,6 +504,12 @@ Proses induk menutup ujung penulisan dari pipe (fd[1]) karena proses induk tidak
 
 ### Hasil Pengerjaan Soal 2
 
+<img width="722" alt="Screenshot 2024-05-11 at 20 58 04" src="https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/147926732/9c560390-3007-4aea-9bc0-060b604ddc11">
+
+<img width="1202" alt="Screenshot 2024-05-11 at 20 58 44" src="https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/147926732/4b0c624f-540f-4cd5-81fb-de6af906ea62">
+
+
+
 ## Soal 3
 **oleh Fiorenza Adelia Nalle (5027231053)**
 ### Deskripsi Soal 1
