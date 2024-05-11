@@ -1580,3 +1580,60 @@ Kemudian, fungsi mendapatkan waktu saat ini menggunakan fungsi `time(NULL)` dan 
        }
 
 * Jika perintah yang diterima dari klien tidak dikenali atau tidak sesuai dengan perintah yang didefinisikan sebelumnya, maka kode else akan dieksekusi. Di dalam kode ini akan menjalankan "Invalid Command".
+
+
+### Kendala Pengerjaan Soal 4
+* Terdapat kesalahan pada saat membuat program yang seharusnya output judul anime malah menjadi genre.
+
+![Screenshot 2024-05-11 210931](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/a4e8b641-b7e4-4c46-b0bb-c3d0e5119e3e)
+
+* Ada kesalahan di program yang berakibat tidak jalannya program status sehingga output blank.
+
+![Screenshot 2024-05-11 211256](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/7ebd87e6-943d-45dc-8912-82e309983591)
+
+* Kendala pada program edit sehingga hasil tidak mengganti data sebelumnya dan menimpanya sampai 4x.
+  
+![Screenshot 2024-05-11 211810](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/894fcb0f-ab0f-4ca0-b451-3c8a40f56ea0)
+
+![Screenshot 2024-05-11 212050](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/2c5e47fe-47d4-436a-879d-f967629313fa)
+
+### Screenshot Hasil Pengerjaan Soal 4
+* Menampilkan seluruh judul
+
+![Screenshot 2024-05-11 210542](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/48eed09c-982f-43ee-aed3-163be9a0bd4d)
+
+* Menampilkan judul berdasarkan genre
+
+![Screenshot 2024-05-11 210724](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/912f5ccf-e855-4aa5-8c7b-8504a2427be1)
+
+* Menampilkan judul berdasarkan hari
+
+![Screenshot 2024-05-11 210931](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/a4e8b641-b7e4-4c46-b0bb-c3d0e5119e3e)
+
+* Menampilkan status berdasarkan berdasarkan judul
+
+![Screenshot 2024-05-11 211256](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/7ebd87e6-943d-45dc-8912-82e309983591)
+
+* Menambahkan anime ke dalam file myanimelist.csv
+
+![Screenshot 2024-05-11 211523](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/c2020488-95e1-41f8-824a-3e9e103ded03)
+
+![Screenshot 2024-05-11 211546](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/8ef15e55-2e19-4a3f-a07f-818dbe10648f)
+
+![Screenshot 2024-05-11 211621](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/baf22c41-8616-4e1c-975c-531c02d15ce8)
+
+* Melakukan edit anime berdasarkan judul
+
+![Screenshot 2024-05-11 211756](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/dc5a8040-a123-404b-be6b-f2c4765a1d3e)
+
+![Screenshot 2024-05-11 211810](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/894fcb0f-ab0f-4ca0-b451-3c8a40f56ea0)
+
+![Screenshot 2024-05-11 212050](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/2c5e47fe-47d4-436a-879d-f967629313fa)
+
+* Melakukan delete berdasarkan judul
+
+![Screenshot 2024-05-11 212208](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/9087eca1-27e6-42ae-83ac-cd6fcfc04304)
+
+* Selain command yang diberikan akan menampilkan tulisan “Invalid Command”
+
+![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/145766477/ac1cca99-d911-4c5a-ac9a-183a44738688)
