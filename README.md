@@ -833,6 +833,14 @@ Contoh direktori akhir setelah dijalankan auth.c dan db.c:
  
 	![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/122fc87a-c041-4c1e-8bb8-3869eab4527e)
 
+* Direktori awal:
+
+![direktori_awal](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/506b2549-112d-4269-9b09-da96ef2fd179)
+
+* Direktori akhir setelah dijalankan auth.c dan db.c:
+
+![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/e4543808-9a45-4e5e-97e0-1135bc2bfc49)
+
 ## Soal 2
 **oleh Fiorenza Adelia Nalle (5027231053)**
 ### Deskripsi Soal 2
