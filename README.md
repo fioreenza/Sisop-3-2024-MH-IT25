@@ -293,7 +293,7 @@ Info: 55%
 	    return 0;
 	}
 
-### Penjelasan paddock.c
+### Penjelasan paddock.c (server)
 
 	#include <unistd.h>
 	#include <stdlib.h>
@@ -312,7 +312,7 @@ Info: 55%
 	#define PORT 8080
 	#define LOG_FILE "race.log"
 
-Bagian ini adalah header file yang diperlukan dan file "actions.c", yang berisi definisi fungsi-fungsi seperti `gap()`, `fuel()`, `tire()`, dan `tire_change()`. Kemudian, ada dua definisi konstan: `PORT` (port yang akan digunakan oleh server) dan `LOG_FILE` (nama file log).
+Bagian ini adalah library yang diperlukan dan meng-include file "actions.c", yang berisi definisi fungsi-fungsi seperti `gap()`, `fuel()`, `tire()`, dan `tire_change()`. Kemudian, ada dua definisi konstan: `PORT` (port yang akan digunakan oleh server) dan `LOG_FILE` (nama file log).
 
 	void log_message(const char* source, const char* command, const char* info) {
 	    FILE *log_file = fopen(LOG_FILE, "a");
@@ -338,7 +338,7 @@ Terakhir, pesan log ditulis ke dalam file log menggunakan fprintf(). Setelah pen
 	void handle_client(int client_socket) {
 	    char buffer[1024] = {0};
 	    int valread;
-Fungsi handle_client menerima satu argumen, yaitu client_socket, yang merupakan soket yang terhubung dengan driver.c. Dalam fungsi ini, kita mendeklarasikan sebuah buffer karakter buffer yang akan digunakan untuk membaca pesan dari klien. valread digunakan untuk menyimpan jumlah byte yang dibaca dari soket klien.
+Fungsi handle_client menerima satu argumen, yaitu client_socket, yang merupakan soket yang terhubung dengan driver.c. Dalam fungsi ini, kita mendeklarasikan sebuah buffer karakter buffer yang akan digunakan untuk membaca pesan dari client. valread digunakan untuk menyimpan jumlah byte yang dibaca dari soket client.
 
 	    valread = read(client_socket, buffer, 1024);
 	    if (valread == -1) {
@@ -346,7 +346,7 @@ Fungsi handle_client menerima satu argumen, yaitu client_socket, yang merupakan 
 	        close(client_socket);
 	        return;
 	    }
-Kode di atas membaca pesan dari klien ke dalam buffer yang telah disediakan. Jika ada kesalahan dalam membaca pesan, pesan kesalahan akan dicetak di stderr menggunakan fprintf, dan koneksi dengan klien akan ditutup.
+Kode di atas membaca pesan dari client ke dalam buffer yang telah disediakan. Jika ada kesalahan dalam membaca pesan, pesan kesalahan akan dicetak di stderr menggunakan fprintf, dan koneksi dengan client akan ditutup.
 	
 	    char* response = "Invalid command";
 	    char* token = strtok(buffer, " ");
@@ -375,14 +375,14 @@ Setelah pesan dibaca, pesan tersebut diproses. Pesan tersebut dipisahkan menjadi
 	
 	    close(client_socket);
 	}
-Setelah pemrosesan pesan, pesan log driver dicatat yang berisi token (gap, fuel, tire, tire_change) dan info yang diterima dari driver.c. Setelah mendapatkan respons dari fungsi yang sesuai, respons tersebut dikirimkan kembali ke driver.c melalui soket. Setelah mengirim respons ke klien, pesan log kedua yaitu paddock dicatat. Pesan log paddock berisi token (gap, fuel, tire, tire_change) dan respons yang didapat dari actions.c.
+Setelah pemrosesan pesan, pesan log driver dicatat yang berisi token (gap, fuel, tire, tire_change) dan info yang diterima dari client. Setelah mendapatkan respons dari fungsi yang sesuai, respons tersebut dikirimkan kembali ke client melalui soket. Setelah mengirim respons ke client, pesan log kedua yaitu paddock dicatat. Pesan log paddock berisi token (gap, fuel, tire, tire_change) dan respons yang didapat dari actions.c.
 
 	int main() {
 	    int server_fd, client_socket;
 	    struct sockaddr_in address;
 	    int opt = 1;
 	    int addrlen = sizeof(address);
-Variabel yang akan digunakan dideklarasikan. Server_fd adalah file descriptor untuk socket paddock, client_socket adalah file descriptor untuk socket driver yang terhubung, address adalah struktur untuk menyimpan alamat server, opt adalah variabel untuk mengatur opsi soket, dan addrlen adalah panjang dari struktur alamat.
+Variabel yang akan digunakan dideklarasikan. Server_fd adalah file descriptor untuk socket server, client_socket adalah file descriptor untuk socket client yang terhubung, address adalah struktur untuk menyimpan alamat server, opt adalah variabel untuk mengatur opsi soket, dan addrlen adalah panjang dari struktur alamat.
 	
 	    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
 	        perror("socket failed");
@@ -410,7 +410,7 @@ Alamat server ditentukan dalam struktur address. Ini menggunakan alamat IPv4, de
 	        exit(EXIT_FAILURE);
 	    }
 	    printf("Paddock is listening on port %d\n", PORT);
-Selanjutnya, server mendengarkan koneksi masuk menggunakan fungsi listen(). Argumen kedua adalah jumlah maksimum koneksi yang dapat ditangani oleh server secara bersamaan. Jika mendengarkan gagal, pesan kesalahan akan dicetak dan program akan keluar dengan status kegagalan. Setelah semua persiapan selesai, pesan ini akan dicetak ke konsol untuk memberi tahu bahwa server siap mendengarkan koneksi pada port yang ditentukan.
+Selanjutnya, server mendengarkan koneksi masuk menggunakan fungsi listen(). Argumen kedua adalah jumlah maksimum koneksi yang dapat ditangani oleh server secara bersamaan. Jika mendengarkan gagal, pesan kesalahan akan dicetak dan program akan keluar dengan status kegagalan. Setelah semua persiapan selesai, pesan ini akan dicetak ke terminal untuk memberi tahu bahwa server siap mendengarkan koneksi pada port yang ditentukan.
 	
 	    while (1) {
 	        if ((client_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
@@ -432,7 +432,81 @@ Selanjutnya, server mendengarkan koneksi masuk menggunakan fungsi listen(). Argu
 	
 	    return 0;
 	}
-Server kemudian masuk ke dalam loop utama, yang bertugas untuk menerima dan mengelola koneksi dari klien. Fungsi accept() digunakan untuk menerima koneksi masuk. Jika koneksi berhasil diterima, soket klien baru disimpan dalam client_socket. Setelah koneksi diterima, proses fork digunakan untuk menangani koneksi tersebut dalam proses anak. Jika fork berhasil, proses anak akan menutup soket server, menangani koneksi menggunakan fungsi handle_client, menutup soket klien, dan kemudian keluar dengan status keberhasilan. Proses induk akan menutup soket klien dan kembali ke awal loop untuk menerima koneksi baru.
+Server kemudian masuk ke dalam loop utama, yang bertugas untuk menerima dan mengelola koneksi dari client. Fungsi accept() digunakan untuk menerima koneksi masuk. Jika koneksi berhasil diterima, soket client baru disimpan dalam client_socket. Setelah koneksi diterima, proses fork digunakan untuk menangani koneksi tersebut dalam proses anak. Jika fork berhasil, proses anak akan menutup soket server, menangani koneksi menggunakan fungsi handle_client, menutup soket client, dan kemudian keluar dengan status keberhasilan. Proses induk akan menutup soket client dan kembali ke awal loop untuk menerima koneksi baru.
+
+### Penjelasan driver.c (client)
+
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <unistd.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <arpa/inet.h>
+	#include <string.h>
+	
+	#define PORT 8080
+Bagian ini untuk mengimport library yang diperlukan. Selain itu, sebuah konstanta bernama PORT didefinisikan untuk menentukan nomor port yang akan digunakan.
+	
+	void send_command(int sockfd, const char* command, const char* info) {
+	    char buffer[1024] = {0};
+	    sprintf(buffer, "%s %s", command, info);
+	    send(sockfd, buffer, strlen(buffer), 0);
+	    printf("[Driver]: [%s] [%s]\n", command, info);
+	}
+Fungsi send_command bertanggung jawab untuk mengirimkan perintah ke server. Perintah dan informasi tambahan dikonkatenasi ke dalam sebuah string menggunakan sprintf(), dan kemudian string tersebut dikirim melalui soket menggunakan fungsi send(). Selain itu, fungsi ini mencetak perintah dan informasi ke terminal.
+	
+	void receive_response(int sockfd) {
+	    char buffer[1024] = {0};
+	    read(sockfd, buffer, 1024);
+	    printf("[Paddock]: [%s]\n", buffer);
+	}
+Fungsi receive_response bertanggung jawab untuk menerima respons dari server. Respons diterima melalui soket menggunakan fungsi read() dan disimpan dalam buffer. Setelah itu, respons tersebut dicetak ke terminal.
+	
+	int main(int argc, char *argv[]) {
+	    if (argc != 5) {
+	        printf("Usage: %s -c [Command] -i [Info]\n", argv[0]);
+	        return 1;
+	    }
+Bagian ini untuk memeriksa jumlah argumen yang diberikan saat menjalankan program. Jika jumlahnya tidak sama dengan lima (termasuk nama program itu sendiri), program mencetak cara penggunaan yang benar dan keluar dengan kode kesalahan.
+	
+	    int client_socket;
+	    struct sockaddr_in server_address;
+	
+	    if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	        perror("socket creation failed");
+	        return 1;
+	    }
+Soket client dan struktur alamat server dideklarasikan. Soket client kemudian dibuat menggunakan fungsi socket(). Jika pembuatan soket gagal, pesan kesalahan dicetak dan program keluar dengan kode kesalahan.
+
+	    memset(&server_address, '0', sizeof(server_address));
+	
+	    server_address.sin_family = AF_INET;
+	    server_address.sin_port = htons(PORT);
+	
+	    if (inet_pton(AF_INET, "127.0.0.1", &server_address.sin_addr) <= 0) {
+	        perror("invalid address / address not supported");
+	        return 1;
+	    }
+Struktur alamat server diinisialisasi. Alamat IP server ditetapkan sebagai 127.0.0.1 yang merupakan alamat loopback untuk menghubungkan ke server yang berjalan pada mesin lokal. Port server ditentukan sebagai PORT yang telah didefinisikan sebelumnya.
+	
+	    if (connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) {
+	        perror("connection failed");
+	        return 1;
+	    }
+Kemudian, koneksi ke server dilakukan menggunakan fungsi connect(). Jika koneksi gagal, pesan kesalahan dicetak dan program keluar dengan kode kesalahan.
+	
+	    char* command = argv[2];
+	    char* info = argv[4];
+	
+	    send_command(client_socket, command, info);
+	
+	    receive_response(client_socket);
+	
+	    close(client_socket);
+	
+	    return 0;
+	} 
+Setelah koneksi berhasil dibuat, argumen dari baris perintah (argv) yang diberikan oleh pengguna diambil. Perintah dan informasi dari argumen tersebut kemudian dikirimkan ke server menggunakan fungsi send_command. Setelah itu, respons dari server diterima menggunakan fungsi receive_response. Terakhir, soket client ditutup dan program keluar dengan kode berhasil.
 
 ## Soal 4
 **oleh Wira Samudra Siregar (5027231041)**
