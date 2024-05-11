@@ -293,9 +293,148 @@ Info: 55%
 	    return 0;
 	}
 
+### Penjelasan paddock.c
+
+	#include <unistd.h>
+	#include <stdlib.h>
+	#include <stdio.h>
+	#include <string.h>
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <fcntl.h>
+	#include <arpa/inet.h>
+	#include <time.h>
+	#include <errno.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include "actions.c"
+	
+	#define PORT 8080
+	#define LOG_FILE "race.log"
+
+Bagian ini adalah header file yang diperlukan dan file "actions.c", yang berisi definisi fungsi-fungsi seperti `gap()`, `fuel()`, `tire()`, dan `tire_change()`. Kemudian, ada dua definisi konstan: `PORT` (port yang akan digunakan oleh server) dan `LOG_FILE` (nama file log).
+
+	void log_message(const char* source, const char* command, const char* info) {
+	    FILE *log_file = fopen(LOG_FILE, "a");
+	    if (log_file == NULL) {
+	        perror("Error opening log file");
+	        exit(EXIT_FAILURE);
+	    }
+Fungsi log_message menerima tiga argumen: source (sumber pesan), command (perintah), dan info (informasi tambahan). Pertama, fungsi membuka file log dengan menggunakan fungsi fopen(). Jika gagal membuka file, pesan kesalahan akan dicetak menggunakan perror() dan program akan keluar dengan status kegagalan (EXIT_FAILURE).
+
+	    time_t raw_time;
+	    struct tm *time_info;
+	    char time_str[20];
+	    time(&raw_time);
+	    time_info = localtime(&raw_time);
+	    strftime(time_str, sizeof(time_str), "%d/%m/%Y %H:%M:%S", time_info);
+Selanjutnya, waktu saat ini diambil menggunakan fungsi time(), dan struktur tm untuk informasi waktu lokal diperoleh menggunakan localtime(). Waktu yang diperoleh diformat ke dalam string time_str menggunakan strftime(), yang akan menampilkan tanggal dan waktu dalam format yang ditentukan ("%d/%m/%Y %H:%M:%S").
+
+	    fprintf(log_file, "[%s] [%s]: [%s] [%s]\n", source, time_str, command, info);
+	    fclose(log_file);
+	}
+Terakhir, pesan log ditulis ke dalam file log menggunakan fprintf(). Setelah penulisan selesai, file log ditutup dengan fclose().
+
+	void handle_client(int client_socket) {
+	    char buffer[1024] = {0};
+	    int valread;
+Fungsi handle_client menerima satu argumen, yaitu client_socket, yang merupakan soket yang terhubung dengan driver.c. Dalam fungsi ini, kita mendeklarasikan sebuah buffer karakter buffer yang akan digunakan untuk membaca pesan dari klien. valread digunakan untuk menyimpan jumlah byte yang dibaca dari soket klien.
+
+	    valread = read(client_socket, buffer, 1024);
+	    if (valread == -1) {
+	        fprintf(stderr, "Error reading from client: %s\n", strerror(errno));
+	        close(client_socket);
+	        return;
+	    }
+Kode di atas membaca pesan dari klien ke dalam buffer yang telah disediakan. Jika ada kesalahan dalam membaca pesan, pesan kesalahan akan dicetak di stderr menggunakan fprintf, dan koneksi dengan klien akan ditutup.
+	
+	    char* response = "Invalid command";
+	    char* token = strtok(buffer, " ");
+	    char* info = strtok(NULL, "\n"); 
+	   if (token != NULL) {
+	        if (strcmp(token, "Gap") == 0) {
+	            float distance = atof(info);
+	            response = gap(distance);
+	        } else if (strcmp(token, "Fuel") == 0) {
+	            float fuel_percentage = atof(info);
+	            response = fuel(fuel_percentage);
+	        } else if (strcmp(token, "Tire") == 0) {
+	            int tire_usage = atoi(info);
+	            response = tire(tire_usage);
+	        } else if (strcmp(token, "TireChange") == 0) {
+	            response = tire_change(info);
+	        }
+	    }
+Setelah pesan dibaca, pesan tersebut diproses. Pesan tersebut dipisahkan menjadi dua bagian menggunakan fungsi strtok(). Bagian pertama disimpan dalam variabel token, dan bagian kedua disimpan dalam variabel info. Kemudian, berdasarkan nilai token, fungsi yang sesuai dipanggil (misalnya, gap(), fuel(), tire(), atau tire_change()), dan responsnya disimpan dalam variabel response.
+	
+	    log_message("Driver", token, info); 
+	
+	    send(client_socket, response, strlen(response), 0);
+	
+	    log_message("Paddock", token, response);
+	
+	    close(client_socket);
+	}
+Setelah pemrosesan pesan, pesan log driver dicatat yang berisi token (gap, fuel, tire, tire_change) dan info yang diterima dari driver.c. Setelah mendapatkan respons dari fungsi yang sesuai, respons tersebut dikirimkan kembali ke driver.c melalui soket. Setelah mengirim respons ke klien, pesan log kedua yaitu paddock dicatat. Pesan log paddock berisi token (gap, fuel, tire, tire_change) dan respons yang didapat dari actions.c.
+
+	int main() {
+	    int server_fd, client_socket;
+	    struct sockaddr_in address;
+	    int opt = 1;
+	    int addrlen = sizeof(address);
+Variabel yang akan digunakan dideklarasikan. Server_fd adalah file descriptor untuk socket paddock, client_socket adalah file descriptor untuk socket driver yang terhubung, address adalah struktur untuk menyimpan alamat server, opt adalah variabel untuk mengatur opsi soket, dan addrlen adalah panjang dari struktur alamat.
+	
+	    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+	        perror("socket failed");
+	        exit(EXIT_FAILURE);
+	    }
+Kode di atas membuat soket menggunakan fungsi socket(). Soket tersebut menggunakan protokol AF_INET dan tipe soket stream untuk koneksi TCP. Jika pembuatan soket gagal, pesan kesalahan akan dicetak menggunakan perror() dan program akan keluar dengan status kegagalan (EXIT_FAILURE).
+
+	    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+	        perror("setsockopt");
+	        exit(EXIT_FAILURE);
+	    }
+Selanjutnya, kode mengatur opsi soket menggunakan setsockopt(). Dalam hal ini, menggunakan opsi SO_REUSEADDR dan SO_REUSEPORT untuk memungkinkan penggunaan kembali alamat dan port yang sama setelah server ditutup. Jika pengaturan opsi gagal, pesan kesalahan akan dicetak dan program akan keluar dengan status kegagalan.
+
+	    address.sin_family = AF_INET;
+	    address.sin_addr.s_addr = INADDR_ANY;
+	    address.sin_port = htons(PORT);
+	    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+	        perror("bind failed");
+	        exit(EXIT_FAILURE);
+	    }
+Alamat server ditentukan dalam struktur address. Ini menggunakan alamat IPv4, dengan IP server yang ditetapkan sebagai INADDR_ANY, yang berarti server akan menerima koneksi dari semua antarmuka jaringan yang tersedia. Port yang digunakan oleh server ditentukan sebagai PORT, yang kemungkinan telah didefinisikan sebelumnya. Soket server diikat ke alamat yang ditentukan menggunakan fungsi bind(). Jika proses ini gagal, pesan kesalahan akan dicetak dan program akan keluar dengan status kegagalan.
+	
+	    if (listen(server_fd, 3) < 0) {
+	        perror("listen");
+	        exit(EXIT_FAILURE);
+	    }
+	    printf("Paddock is listening on port %d\n", PORT);
+Selanjutnya, server mendengarkan koneksi masuk menggunakan fungsi listen(). Argumen kedua adalah jumlah maksimum koneksi yang dapat ditangani oleh server secara bersamaan. Jika mendengarkan gagal, pesan kesalahan akan dicetak dan program akan keluar dengan status kegagalan. Setelah semua persiapan selesai, pesan ini akan dicetak ke konsol untuk memberi tahu bahwa server siap mendengarkan koneksi pada port yang ditentukan.
+	
+	    while (1) {
+	        if ((client_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
+	            perror("accept");
+	            continue;
+	        }
+	        pid_t child_pid = fork();
+	        if (child_pid == 0) {
+	            close(server_fd);
+	            handle_client(client_socket);
+	            close(client_socket);
+	            exit(EXIT_SUCCESS);
+	        } else if (child_pid < 0) {
+	            perror("fork");
+	        } else {
+	            close(client_socket);
+	        }
+	    }
+	
+	    return 0;
+	}
+Server kemudian masuk ke dalam loop utama, yang bertugas untuk menerima dan mengelola koneksi dari klien. Fungsi accept() digunakan untuk menerima koneksi masuk. Jika koneksi berhasil diterima, soket klien baru disimpan dalam client_socket. Setelah koneksi diterima, proses fork digunakan untuk menangani koneksi tersebut dalam proses anak. Jika fork berhasil, proses anak akan menutup soket server, menangani koneksi menggunakan fungsi handle_client, menutup soket klien, dan kemudian keluar dengan status keberhasilan. Proses induk akan menutup soket klien dan kembali ke awal loop untuk menerima koneksi baru.
 
 
-## Soal 4
 **oleh Wira Samudra Siregar (5027231041)**
 ### Deskripsi Soal 1
 4. Lewis Hamilton 🏎 seorang wibu akut dan sering melewatkan beberapa episode yang karena sibuk menjadi asisten. Maka dari itu dia membuat list anime yang sedang ongoing (biar tidak lupa) dan yang completed (anime lama tapi pengen ditonton aja). Tapi setelah Lewis pikir-pikir malah kepikiran untuk membuat list anime. Jadi dia membuat file (harap diunduh) dan ingin menggunakan socket yang baru saja dipelajarinya untuk melakukan CRUD pada list animenya. 
