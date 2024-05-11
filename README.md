@@ -170,6 +170,619 @@ Contoh direktori akhir setelah dijalankan auth.c dan db.c:
             return EXIT_SUCCESS;
         }
 
+* **Penjelasan auth.c**
+
+    - **Libraries** 
+
+            #include <stdio.h>
+            #include <stdlib.h>
+            #include <string.h>
+            #include <unistd.h>
+            #include <sys/types.h>
+            #include <sys/ipc.h>
+            #include <sys/shm.h>
+            #include <dirent.h>
+
+        Ini adalah bagian pembukaan kode yang memuat pustaka standar yang diperlukan untuk operasi input-output, alokasi memori, manipulasi string, serta interaksi dengan sistem dan proses. Ini termasuk pustaka untuk shared memory (`<sys/shm.h>`), direktori (`<dirent.h>`), dan lain-lain.
+
+    - **Constants**
+
+            #define SHM_SIZE 1024
+
+        Ini mendefinisikan ukuran shared memory yang akan dibuat.
+
+    - **Function: `deleteInvalidFile`**
+
+            void deleteInvalidFile(char* filename) {
+                printf("Deleting invalid file: %s\n", filename);
+                remove(filename);
+            }
+
+        Fungsi ini menghapus file yang tidak valid dari sistem. Menerima nama file sebagai argumen dan mencetak pesan bahwa file tersebut dihapus sebelum menghapusnya dari sistem.
+
+    - **Function: `main`**
+
+            int main() {
+                // Membuat shared memory
+                key_t key = 12345;
+                int shmid = shmget(key, SHM_SIZE, IPC_CREAT | 0666);
+                char *shm = (char *)shmat(shmid, NULL, 0);
+        
+        Di dalam fungsi `main`, kode membuat shared memory menggunakan fungsi `shmget()` dengan ukuran `SHM_SIZE` dan kunci yang ditentukan (`key`). Kemudian, memasang shared memory ke ruang alamat proses menggunakan `shmat()`.
+
+    - **Looping through Files in a Directory**
+
+            DIR *dir;
+            struct dirent *ent;
+            if ((dir = opendir ("new-data")) != NULL) {
+                while ((ent = readdir (dir)) != NULL) {
+
+        Kode ini membuka direktori "new-data" dan mengiterasi melalui setiap entri di dalamnya menggunakan fungsi `readdir()`.
+
+    - **File Validation and Processing**
+
+            char* filename = ent->d_name;
+            if (strstr(filename, ".csv") != NULL && (strstr(filename, "trashcan") != NULL || strstr(filename, "parkinglot") != NULL)) {
+                // ...
+            }
+
+        Kode ini memvalidasi setiap file dalam direktori. Hanya file yang memiliki ekstensi `.csv` dan mengandung kata "trashcan" atau "parkinglot" dalam namanya yang diproses.
+
+    - **File Operations**
+
+            char filepath[100];
+            sprintf(filepath, "new-data/%s", filename);
+            FILE *file = fopen(filepath, "r");
+
+        Kode ini membangun alamat file dengan `sprintf()` dan membukanya menggunakan `fopen()`.
+
+    - **Shared Memory Update**
+
+            char line[100];
+            while (fgets(line, sizeof(line), file) != NULL) {
+                strcat(printf_buffer, line);
+            }
+            strcat(shm, printf_buffer);
+
+        Setiap baris dari file dibaca dan disalin ke dalam buffer `printf_buffer`, kemudian buffer tersebut disalin ke dalam shared memory.
+
+    - **Closing Files and Invalid File Handling**
+
+            fclose(file);
+
+        File yang sudah selesai dibaca ditutup dengan `fclose()`.
+
+            } else {
+                char filepath[100];
+                sprintf(filepath, "new-data/%s", filename);
+                deleteInvalidFile(filepath);
+            }
+
+        Jika file tidak memenuhi kriteria validasi, fungsi `deleteInvalidFile()` dipanggil untuk menghapusnya.
+
+    - **Shared Memory Detachment and Cleanup**
+
+            printf("%s", shm);
+            shmdt(shm);
+        
+        Setelah semua file diproses, isi shared memory dicetak dan shared memory dilepaskan dari ruang alamat proses menggunakan `shmdt()`.
+
+    - **Final Notes**
+
+            return EXIT_SUCCESS;
+
+        Kode selesai dijalankan dengan sukses, dan program keluar dengan kode keluaran yang sesuai.
+
+* **rate.c**
+
+        #include <stdio.h>
+        #include <stdlib.h>
+        #include <string.h>
+        #include <sys/ipc.h>
+        #include <sys/shm.h>
+
+        #define SHM_SIZE 1024
+
+        struct Entry {
+            char filename[50];
+            char type[50];
+            char name[50];
+            double rating;
+        };
+
+        int main()
+        {
+            key_t key = 12345;
+            int shmid = shmget(key, SHM_SIZE, IPC_CREAT | 0666);
+            char *shm = (char *)shmat(shmid, NULL, 0);
+            char *s;
+            struct Entry highest_rating = {"", "", "", 0.0}; // Inisialisasi dengan nilai default
+
+            // Membaca isi shared memory dan mencari string
+            s = shm;
+            while (*s != '\0') {
+                // Mencari string yang mengandung ".csv"
+                char *newline_pos = strchr(s, '\n');
+
+                if (newline_pos != NULL)
+            {
+                    // Menyimpan nama file
+                    *newline_pos = '\0'; // Mengakhiri string di sini
+
+                    // Memeriksa apakah baris saat ini adalah nama file
+                    if (strstr(s, ".csv") != NULL)
+                {
+                        strcpy(highest_rating.filename, s);
+
+                        // Menentukan jenis berdasarkan nama file
+                        if (strstr(s, "trashcan") != NULL)
+                {
+                            strcpy(highest_rating.type, "Trash Can");
+                        }
+                else if (strstr(s, "parkinglot") != NULL)
+                {
+                            strcpy(highest_rating.type, "Parking Lot");
+                        }
+                    }
+                else
+                {
+                        // Memproses data baris dengan nama dan rating
+                        char name[50];
+                        double rating;
+                        sscanf(s, "%[^,], %lf", name, &rating);
+
+                        if (rating > highest_rating.rating)
+                {
+                            strcpy(highest_rating.name, name);
+                            highest_rating.rating = rating;
+                        }
+                    }
+
+                    // Lanjutkan mencari setelah ".csv"
+                    s = newline_pos + 1;
+                }
+            else
+            {
+                    // Jika tidak ditemukan, lanjutkan ke karakter berikutnya
+                    s++;
+                }
+            }
+            // Menampilkan hasil
+            printf("Type: %s\n", highest_rating.type);
+            printf("Filename: %s\n", highest_rating.filename);
+            printf("-------------------\n");
+            printf("Name: %s\n", highest_rating.name);
+            printf("Rating: %.1lf\n", highest_rating.rating);
+
+            shmdt(shm);
+            shmctl(shmid, IPC_RMID, NULL);
+
+            return EXIT_SUCCESS;
+        }
+
+* **Penjelasan rate.c**
+
+    - **Libraries**
+
+            #include <stdio.h>
+            #include <stdlib.h>
+            #include <string.h>
+            #include <sys/ipc.h>
+            #include <sys/shm.h>
+
+        Ini adalah bagian pembukaan kode yang memuat pustaka standar yang diperlukan untuk operasi input-output, alokasi memori, manipulasi string, serta interaksi dengan shared memory (`<sys/ipc.h>` dan `<sys/shm.h>`).
+
+    - **Constants**
+
+            #define SHM_SIZE 1024
+
+        Mendefinisikan ukuran shared memory yang akan dibuat.
+
+    - **Structure Definition**
+
+            struct Entry {
+                char filename[50];
+                char type[50];
+                char name[50];
+                double rating;
+            };
+
+        Mendefinisikan struktur `Entry` yang akan digunakan untuk menyimpan informasi tentang file dan rating tertinggi.
+
+    - **Shared Memory Initialization**
+
+            key_t key = 12345;
+            int shmid = shmget(key, SHM_SIZE, IPC_CREAT | 0666);
+            char *shm = (char *)shmat(shmid, NULL, 0);
+
+        Kode ini membuat shared memory dengan menggunakan kunci (`key`) yang ditentukan, ukuran `SHM_SIZE`, dan hak akses `IPC_CREAT | 0666`. Kemudian, shared memory tersebut dimasukkan ke dalam ruang alamat proses.
+
+    - **Variables Initialization**
+
+            char *s;
+            struct Entry highest_rating = {"", "", "", 0.0}; // Inisialisasi dengan nilai default
+        
+        Sebuah pointer karakter `s` dan sebuah struktur Entry yang disebut highest_rating diinisialisasi dengan nilai default.
+
+    - **Reading Shared Memory and Searching String**
+
+            s = shm;
+            while (*s != '\0') {
+                char *newline_pos = strchr(s, '\n');
+
+                if (newline_pos != NULL) {
+                    *newline_pos = '\0';
+
+                    if (strstr(s, ".csv") != NULL) {
+                        // Processing file name
+                    } else {
+                        // Processing data lines
+                    }
+
+                    s = newline_pos + 1;
+                } else {
+                    s++;
+                }
+            }
+
+        Kode ini membaca isi dari shared memory dan mencari string yang memenuhi kondisi tertentu, yaitu string yang mengandung ".csv". Jika ditemukan, nama file disimpan; jika tidak, baris data diproses untuk mendapatkan nama dan rating.
+
+    - **Processing File Name**
+
+            if (strstr(s, ".csv") != NULL) {
+                strcpy(highest_rating.filename, s);
+
+                // Determine type based on file name
+                if (strstr(s, "trashcan") != NULL) {
+                    strcpy(highest_rating.type, "Trash Can");
+                } else if (strstr(s, "parkinglot") != NULL) {
+                    strcpy(highest_rating.type, "Parking Lot");
+                }
+            }
+
+        Jika ditemukan nama file, kode ini menyimpan nama file dan menentukan jenisnya berdasarkan nama file tersebut.
+
+    - **Processing Data Lines**
+
+            else {
+                char name[50];
+                double rating;
+                sscanf(s, "%[^,], %lf", name, &rating);
+
+                if (rating > highest_rating.rating) {
+                    strcpy(highest_rating.name, name);
+                    highest_rating.rating = rating;
+                }
+            }
+
+        Jika tidak ditemukan nama file, kode ini memproses baris data dengan menggunakan `sscanf()` untuk memisahkan nama dan rating. Jika rating yang ditemukan lebih tinggi dari rating tertinggi yang sebelumnya, data tersebut disimpan.
+
+    - **Displaying Results**
+
+            printf("Type: %s\n", highest_rating.type);
+            printf("Filename: %s\n", highest_rating.filename);
+            printf("-------------------\n");
+            printf("Name: %s\n", highest_rating.name);
+            printf("Rating: %.1lf\n", highest_rating.rating);
+
+        Kode ini menampilkan hasil yang ditemukan, termasuk jenis, nama file, nama, dan rating tertinggi.
+
+    - **Shared Memory Detachment and Cleanup**
+
+            shmdt(shm);
+            shmctl(shmid, IPC_RMID, NULL);
+
+        Setelah semua operasi selesai, shared memory dilepaskan dari ruang alamat proses menggunakan `shmdt()`, dan kemudian dihapus menggunakan `shmctl()`.
+
+    - **Final Notes**
+
+            return EXIT_SUCCESS;
+
+        Kode selesai dijalankan dengan sukses, dan program keluar dengan kode keluaran yang sesuai.
+
+* **db.c**
+
+        #include <stdio.h>
+        #include <stdlib.h>
+        #include <string.h>
+        #include <dirent.h>
+        #include <sys/types.h>
+        #include <sys/ipc.h>
+        #include <sys/shm.h>
+        #include <unistd.h>
+        #include <sys/types.h>
+        #include <sys/stat.h>
+        #include <time.h>
+
+        #define SHM_SIZE 1024
+        #define FILENAME_SIZE 256
+
+        int main()
+        {
+            key_t key = 123456;
+            int shmid = shmget(key, SHM_SIZE, IPC_CREAT | 0666);
+            char *shm = (char *)shmat(shmid, NULL, 0);
+            char *s;
+            // Mendapatkan daftar file dari direktori new-data
+            DIR *dir;
+
+            struct dirent *entry;
+
+            if ((dir = opendir("/home/ludwigd/SisOP/Praktikum3/nomor1/new-data")) == NULL)
+            {
+                perror("opendir");
+                exit(1);
+            }
+            // Menyimpan nama file ke dalam shared memory
+            s = shm;
+
+            while ((entry = readdir(dir)) != NULL)
+            {
+                // Skip directories and special files
+                if (entry->d_type == DT_REG)
+            {
+                    strncpy(s, entry->d_name, FILENAME_SIZE);
+                    s += FILENAME_SIZE;
+                }
+            }
+            closedir(dir);
+            shmdt(shm);
+        //    shmctl(shmid, IPC_RMID, NULL);
+
+            // Menunggu beberapa saat untuk memastikan proses kedua membaca shared memory setelah proses pertama menulis
+            sleep(10);
+
+            // Membuka kembali shared memory untuk proses kedua
+            if ((shmid = shmget(key, SHM_SIZE, 0666)) < 0)
+            {
+                perror("shmget");
+                exit(1);
+            }
+
+            // Menautkan shared memory ke ruang alamat untuk proses kedua
+            if ((shm = shmat(shmid, NULL, 0)) == (char *) -1) {
+                perror("shmat");
+                exit(1);
+            }
+
+            // Membuat direktori database jika belum ada
+            char database_dir[] = "/home/ludwigd/SisOP/Praktikum3/nomor1/microservices/database";
+            struct stat st = {0};
+
+            if (stat(database_dir, &st) == -1)
+            {
+                mkdir(database_dir, 0777); // Izin 0777 untuk membuat direktori dengan izin penuh
+            }
+
+            // Membuka file log
+            FILE *log_file = fopen("/home/ludwigd/SisOP/Praktikum3/nomor1/microservices/database/db.log", "a");
+            if (log_file == NULL)
+            {
+                perror("fopen");
+                exit(1);
+            }
+            // Membaca daftar file dari shared memory dan memindahkan file
+            s = shm;
+
+            while (*s != '\0')
+            {
+                // Memindahkan file dari new-data ke microservices/database
+                char filename[FILENAME_SIZE];
+                strncpy(filename, s, FILENAME_SIZE);
+                filename[FILENAME_SIZE - 1] = '\0'; // Pastikan string terminasi
+
+                // Konstruksi path lengkap untuk file
+                char *source_path = malloc(strlen("/home/ludwigd/SisOP/Praktikum3/nomor1/new-data/") + strlen(filename) + 1);
+
+            // Periksa apakah alokasi berhasil
+            if (source_path == NULL)
+            {
+                perror("malloc");
+                exit(1);
+            }
+                // Konstruksi path lengkap untuk file
+            sprintf(source_path, "/home/ludwigd/SisOP/Praktikum3/nomor1/new-data/%s", filename);
+
+            // Konstruksi path lengkap untuk file tujuan
+                char *dest_path = malloc(strlen("/home/ludwigd/SisOP/Praktikum3/nomor1/microservices/database/") + strlen(filename) + 1);
+
+            if (dest_path == NULL)
+            {
+                perror("malloc");
+                exit(1);
+            }
+            // Konstruksi path lengkap untuk file tujuan
+            sprintf(dest_path, "/home/ludwigd/SisOP/Praktikum3/nomor1/microservices/database/%s", filename);
+
+                // Memindahkan file
+                if (rename(source_path, dest_path) == -1)
+            {
+                    perror("rename");
+                free(source_path); // Hindari kebocoran memori jika gagal memindahkan file
+                free(dest_path);
+                    // Gagal memindahkan file, lanjut ke file berikutnya
+                    s += FILENAME_SIZE;
+                    continue;
+                }
+
+            // Menentukan jenis file berdasarkan nama
+                char *type;
+
+                if (strstr(filename, "trashcan") != NULL)
+            {
+                    type = "Trash Can";
+                }
+
+            else if (strstr(filename, "parkinglot") != NULL)
+            {
+                    type = "Parking Lot";
+                }
+            else
+            {
+                    type = "Unknown";
+                }
+
+            // Menulis entri log ke file
+                time_t current_time;
+                struct tm *local_time;
+                char time_str[20];
+                time(&current_time);
+                local_time = localtime(&current_time);
+                strftime(time_str, sizeof(time_str), "%d/%m/%Y %H:%M:%S", local_time);
+                fprintf(log_file, "[%s] [%s] [%s]\n", time_str, type, filename);
+            // Melepaskan memori yang dialokasikan
+                free(source_path);
+            free(dest_path);
+                // Memajukan pointer untuk membaca file berikutnya
+                s += FILENAME_SIZE;
+            }
+            // Menutup file log
+            fclose(log_file);
+            shmdt(shm);
+            shmctl(shmid, IPC_RMID, NULL);
+
+            return EXIT_SUCCESS;
+
+        }
+
+* **Penjelasan db.c**
+
+    - **Libraries**
+
+            #include <stdio.h>
+            #include <stdlib.h>
+            #include <string.h>
+            #include <dirent.h>
+            #include <sys/types.h>
+            #include <sys/ipc.h>
+            #include <sys/shm.h>
+            #include <unistd.h>
+            #include <sys/stat.h>
+            #include <time.h>
+
+        Ini adalah bagian pembukaan kode yang memuat pustaka standar yang diperlukan untuk operasi input-output, alokasi memori, manipulasi string, manipulasi direktori, manipulasi waktu, dan interaksi dengan shared memory (`<sys/types.h>`, `<sys/ipc.h>`, `<sys/shm.h>`).
+
+    - **Constants**
+
+            #define SHM_SIZE 1024
+            #define FILENAME_SIZE 256
+
+        Ini mendefinisikan ukuran shared memory (`SHM_SIZE`) dan ukuran maksimum nama file (`FILENAME_SIZE`) yang akan diproses.
+
+    - **Shared Memory Initialization**
+
+            key_t key = 123456;
+            int shmid = shmget(key, SHM_SIZE, IPC_CREAT | 0666);
+            char *shm = (char *)shmat(shmid, NULL, 0);
+
+        Kode ini membuat shared memory dengan menggunakan kunci (`key`) yang ditentukan, ukuran `SHM_SIZE`, dan hak akses `IPC_CREAT | 0666`. Kemudian, shared memory tersebut dimasukkan ke dalam ruang alamat proses.
+
+    - **Reading File Names from Directory**
+
+            DIR *dir;
+            struct dirent *entry;
+
+            if ((dir = opendir("/home/ludwigd/SisOP/Praktikum3/nomor1/new-data")) == NULL)
+            {
+                perror("opendir");
+                exit(1);
+            }
+
+        Kode ini membuka direktori yang berisi file-file baru yang akan dipindahkan.
+
+    - **Storing File Names into Shared Memory**
+
+            s = shm;
+
+            while ((entry = readdir(dir)) != NULL)
+            {
+                if (entry->d_type == DT_REG)
+                {
+                    strncpy(s, entry->d_name, FILENAME_SIZE);
+                    s += FILENAME_SIZE;
+                }
+            }
+
+        Kode ini membaca setiap file di dalam direktori yang valid (`DT_REG`), dan menyimpan nama file tersebut ke dalam shared memory.
+
+    - **Closing Directory**
+
+            closedir(dir);
+
+        Setelah selesai membaca, direktori ditutup.
+
+    - **Delay**
+
+            sleep(10);
+
+        Program menunggu selama 10 detik sebelum melanjutkan. Ini memastikan bahwa proses kedua akan membaca shared memory setelah proses pertama selesai menulis.
+
+    - **Reopening Shared Memory for the Second Process**
+
+            if ((shmid = shmget(key, SHM_SIZE, 0666)) < 0)
+            {
+                perror("shmget");
+                exit(1);
+            }
+
+            if ((shm = shmat(shmid, NULL, 0)) == (char *) -1) {
+                perror("shmat");
+                exit(1);
+            }
+
+        Kode ini membuka kembali shared memory untuk proses kedua.
+
+    - **Creating Database Directory**
+
+            char database_dir[] = "/home/ludwigd/SisOP/Praktikum3/nomor1/microservices/database";
+            struct stat st = {0};
+
+            if (stat(database_dir, &st) == -1)
+            {
+                mkdir(database_dir, 0777); // Permission 0777 for full permission
+            }
+
+        Jika direktori `database` belum ada, maka kode ini membuatnya.
+
+    - **Opening Log File**
+
+            FILE *log_file = fopen("/home/ludwigd/SisOP/Praktikum3/nomor1/microservices/database/db.log", "a");
+            if (log_file == NULL)
+            {
+                perror("fopen");
+                exit(1);
+            }
+
+        Kode ini membuka file log dalam mode "append".
+
+    - **Moving Files and Logging**
+
+            s = shm;
+
+            while (*s != '\0')
+            {
+                // Move files from new-data to microservices/database
+                // Determine file type based on name
+                // Write log entry to file
+                // Free allocated memory
+                // Advance pointer to read next file
+            }
+
+        Kode ini membaca daftar nama file dari shared memory, memindahkan setiap file dari direktori `new-data` ke `microservices/database`, menentukan jenis file berdasarkan nama, menulis entri log ke file, melepaskan memori yang dialokasikan, dan kemudian maju ke file berikutnya.
+
+    - **Closing Log File**
+
+            fclose(log_file);
+
+        Setelah semua operasi selesai, file log ditutup.
+
+    - **Shared Memory Detachment and Cleanup**
+
+            shmdt(shm);
+            shmctl(shmid, IPC_RMID, NULL);
+
+        Setelah selesai, shared memory dilepaskan dari ruang alamat proses menggunakan `shmdt()`, dan kemudian dihapus menggunakan `shmctl()`.
+
 ### Kendala Pengerjaan Soal 2
 
 
