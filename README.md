@@ -28,9 +28,9 @@ Fuel [Sisa Bensin% (string/int/float)]: Jika bensin lebih dari 80% maka return P
 Tire [Sisa Ban (int)]: Jika pemakaian ban lebih dari 80 maka return Go Push Go Push, jika pemakaian ban diantara 50 dan 80 return Good Tire Wear, jika pemakaian di antara 30 dan 50 return Conserve Your Tire, dan jika pemakaian ban kurang dari 30 maka return Box Box Box.
 Tire Change [Tipe ban saat ini (string)]: Jika tipe ban adalah Soft return Mediums Ready, dan jika tipe ban Medium return Box for Softs.
 
-		Contoh:
-		[Driver] : [Fuel] [55%]
-		[Paddock]: [You can go]
+Contoh:
+[Driver] : [Fuel] [55%]
+[Paddock]: [You can go]
 
 Pada paddock.c program berjalan secara daemon di background, bisa terhubung dengan driver.c melalui socket RPC.
 Program paddock.c dapat call function yang berada di dalam actions.c.
@@ -46,7 +46,7 @@ Program driver.c bisa terhubung dengan paddock.c dan bisa mengirimkan pesan dan 
 Jika bisa digunakan antar device/os (non local) akan diberi nilai tambahan.
 untuk mengaktifkan RPC call dari driver.c, bisa digunakan in-program CLI atau Argv (bebas) yang penting bisa send command seperti poin B dan menampilkan balasan dari paddock.c
 		
-		ex:
+ex:
 Argv: 
 ./driver -c Fuel -i 55% 
 in-program CLI:
