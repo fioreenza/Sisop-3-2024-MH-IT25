@@ -799,6 +799,39 @@ Contoh direktori akhir setelah dijalankan auth.c dan db.c:
 
         ![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/4de86f60-3877-4846-a7f2-5664e3cf60af)
 
+    - File ikn.csv telah terhapus
+ 
+	![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/c9b5cd6a-6dd1-4c48-bd9c-17aa5d679714)
+
+    - Program berhasul mengakses shared memory dan menyimpannya di shared memory dengan menggunakan command `ipcs -m`
+ 
+	![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/68be1090-437b-427d-a3ed-d2e8af56d93b)
+
+* rate.c
+
+    - Program menampilkan Type, Filename, dan Name berdasarkan Rating terbaik dari semua file yang ada di shared memory
+
+	![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/ab6a219b-1470-4bb4-9a9b-43f9a9b5fd1d)
+
+    - Program telah menutup shared memory dengan menggunakan command `ipcs -m`
+
+	![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/1d0645f0-689b-404d-bb95-2bdee2649a79)
+
+* db.c
+
+    - Program menunggu selama 10 detik agar proses kedua bisa dilakukan
+ 
+	![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/34527026-03dc-4eb3-926d-29221bde8780)
+
+    - Program berhasil memindahkan semua file yang ada di directory new-data, ke shared memory. Kemudian program berhasil memindahkan semua file yang ada di shared memory ke directory microservices/database
+ 
+	![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/56453354-a865-4c86-b720-2964cd44a1f7)
+
+	![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/7dcd3c78-aad5-43b6-a914-c28dcca38808)
+
+    - Program mencatat log setiap program memindahkan file, dan menyimpannya di `db.log`
+ 
+	![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/122fc87a-c041-4c1e-8bb8-3869eab4527e)
 
 ## Soal 2
 **oleh Fiorenza Adelia Nalle (5027231053)**
