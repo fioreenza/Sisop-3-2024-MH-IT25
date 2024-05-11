@@ -1335,3 +1335,235 @@ Setelah koneksi berhasil dibuat, argumen dari baris perintah (argv) yang diberik
     }
 
 ### Penjelasan
+### Client.c
+    #define PORT 8080
+
+* Baris ini mendefinisikan PORT dengan nilai 8080, yang merupakan nomor port tempat server.
+
+      int main(int argc, char const *argv[]) {
+      int sock = 0, valread;
+      struct sockaddr_in serv_addr;
+      char buffer[1024] = {0};
+  
+* Awal dari fungsi `main()`. Fungsi ini mendeklarasikan tiga variabel: `sock` untuk menyimpan deskriptor file socket, `valread` untuk menyimpan jumlah byte yang dibaca dari socket, dan `buffer` untuk menyimpan data yang dikirim atau diterima. Struktur `sockaddr_in` `serv_addr` digunakan untuk menyimpan informasi alamat server.
+
+      if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+      printf("\n Socket creation error \n");
+      return -1;
+      }
+  
+* Membuat socket baru dengan tipe `SOCK_STREAM` (TCP) dalam keluarga alamat `AF_INET` (IPv4). Jika pembuatan socket gagal, ia akan mencetak pesan error dan keluar dari program.
+
+      serv_addr.sin_family = AF_INET;
+      serv_addr.sin_port = htons(PORT);
+  
+*  menetapkan alamat dari struktur alamat server `serv_addr` menjadi `AF_INET` (IPv4) dan nomor port menjadi `PORT` (8080) menggunakan fungsi `htons()`, yang mengonversi nomor port dari urutan byte host ke urutan byte jaringan.
+
+       if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+       printf("\nInvalid address/ Address not supported \n");
+       return -1;
+       }
+       if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+       printf("\nConnection Failed \n");
+       return -1;
+       }
+
+* Mengonversi string alamat IP "127.0.0.1" (localhost) menjadi bentuk biner menggunakan fungsi `inet_pton()` dan menyimpannya di bidang `sin_addr` dari struktur `serv_addr`. Jika konversi gagal, ia akan mencetak pesan error dan keluar dari program. Lalu Baris selanjutnya mencoba membuat koneksi dengan server menggunakan fungsi `connect()`. Ia melewatkan deskriptor file socket `sock`, pointer ke struktur `serv_addr` yang berisi informasi alamat server, dan ukuran struktur `serv_addr`. Jika koneksi gagal, ia akan mencetak pesan error dan keluar dari program.
+
+      while (1) {
+      memset(buffer, 0, sizeof(buffer));
+      printf("You: ");
+      fgets(buffer, sizeof(buffer), stdin);
+      buffer[strcspn(buffer, "\n")] = 0;
+      send(sock, buffer, strlen(buffer), 0);
+      if (strcmp(buffer, "exit") == 0) {
+          break;
+      }
+      memset(buffer, 0, sizeof(buffer));
+      valread = read(sock, buffer, 1024);
+      printf("Server: %s\n", buffer);
+      }
+      close(sock);
+      return 0;
+      }
+  
+* `memset(buffer, 0, sizeof(buffer))` menghapus array buffer dengan menetapkan semua elemennya ke nol. `printf("You: ")` meminta pengguna untuk memasukkan pesan. `fgets(buffer, sizeof(buffer), stdin)` membaca baris input dari pengguna dan menyimpannya di array buffer. `buffer[strcspn(buffer, "\n")] = 0` menghapus karakter newline (\n) dari akhir string input. `send(sock, buffer, strlen(buffer), 0)` mengirimkan pesan pengguna ke server melalui socket sock.`if (strcmp(buffer, "exit") == 0) { break; }` memeriksa apakah pengguna memasukkan "exit" dan keluar dari loop jika benar. `memset(buffer, 0, sizeof(buffer))` menghapus array buffer lagi. `valread = read(sock, buffer, 1024)` membaca data dari socket server ke dalam array buffer, dan menyimpan jumlah byte yang dibaca di valread. `printf("Server: %s\n", buffer)` mencetak pesan yang diterima dari server.
+
+### Server.c
+    void logChange(char *type, char *message) {
+    FILE *fp = fopen("change.log", "a");
+    if (fp == NULL) {
+        printf("Failed to open change.log\n");
+        return;
+    }
+
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    fprintf(fp, "[%02d/%02d/%02d] [%s] %s\n", t->tm_mday, t->tm_mon + 1, t->tm_year + 1900, type, message);
+    fclose(fp);
+    }
+    
+* Fungsi `logChange` digunakan untuk mencatat perubahan yang dilakukan pada file `myanimelist.csv`. Fungsi ini membuka file `change.log` dalam mode `append` ("a"), yang berarti setiap pemanggilannya akan menambahkan data baru ke akhir file. Jika pembukaan file gagal, pesan error akan dicetak dan fungsi akan keluar.
+Kemudian, fungsi mendapatkan waktu saat ini menggunakan fungsi `time(NULL)` dan `localtime(&now)` dan memformat tanggal dan waktu ke dalam bentuk yang dapat dibaca. Lalu, fungsi menulis baris baru ke file `change.log` dengan format "[Tanggal] [Tipe] Pesan" menggunakan `fprintf`.
+
+      if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+      perror("socket failed");
+      exit(EXIT_FAILURE);
+      }
+
+      if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+      perror("setsockopt");
+      exit(EXIT_FAILURE);
+      }
+
+      address.sin_family = AF_INET;
+      address.sin_addr.s_addr = INADDR_ANY;
+      address.sin_port = htons(PORT);
+
+      if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+      perror("bind failed");
+      exit(EXIT_FAILURE);
+      }
+
+      if (listen(server_fd, 3) < 0) {
+      perror("listen");
+      exit(EXIT_FAILURE);
+      }
+
+      if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0) {
+      perror("accept");
+      exit(EXIT_FAILURE);
+      }
+  
+      while (1) {
+      memset(buffer, 0, sizeof(buffer));
+      valread = read(new_socket, buffer, 1024);
+
+      if (strcmp(buffer, "exit") == 0) {
+        break;
+      }
+
+      printf("Received: %s\n", buffer);
+
+      FILE *fp = fopen("myanimelist.csv", "r");
+      if (fp == NULL) {
+        perror("Failed to open myanimelist.csv");
+        exit(EXIT_FAILURE);
+      }
+
+* Program ini merupakan implementasi server TCP/IP yang mengelola daftar anime pada file "myanimelist.csv". Pertama, ia membuat socket baru dengan fungsi `socket` dan mengatur opsi socket agar dapat digunakan kembali setelah ditutup dengan `setsockopt`. Kemudian, ia mengisi struktur `address` dengan informasi alamat dan port server menggunakan `AF_INET` untuk IPv4 dan `INADDR_ANY` untuk menerima koneksi dari semua antarmuka jaringan. Selanjutnya, ia mengikat socket dengan alamat dan port tersebut menggunakan `bind`, dan kemudian mulai mendengarkan koneksi masuk dengan `listen`. Terakhir, ia menerima koneksi dari klien menggunakan `accept` dan menyimpan deskriptor file socket baru yang terhubung dengan klien dalam variabel `new_socket`. Setiap fungsi dalam proses ini dilengkapi dengan pengecekan error yang akan mencetak pesan kesalahan dan mengakhiri program jika terjadi kegagalan. Dalam loop utama, program membaca data dari klien menggunakan `read()`, memeriksa apakah data tersebut berisi perintah "exit", lalu membuka file "myanimelist.csv". Selanjutnya, program memproses perintah yang diterima dari klien, seperti menampilkan daftar anime berdasarkan genre atau hari, melihat status anime, menambah anime baru, mengedit data anime, atau menghapus anime dari file. Semua perubahan pada file dicatat dalam "change.log". Jika terjadi kesalahan saat membuka file, program akan mencetak pesan error dan mengakhiri eksekusi.
+
+      if (strcmp(buffer, "showall") == 0) {
+            while (fgets(line, sizeof(line), fp)) {
+                char *title = strtok(line, ",");
+                char *genre = strtok(NULL, ",");
+                char *status = strtok(NULL, ",");
+                sprintf(response + strlen(response), "%s, %s, %s\n", title, genre, status);
+            }
+        }
+
+* Akan dieksekusi jika perintah yang diterima dari klien adalah "showall". Di dalam blok ini, terdapat sebuah loop `while` yang membaca setiap baris dari file "myanimelist.csv" menggunakan `fgets`.
+
+      else if (strncmp(buffer, "genre", 5) == 0) {
+      char *genre = buffer + 6;
+      while (fgets(line, sizeof(line), fp)) {
+                if (strstr(line, genre) != NULL) {
+                    char *title = strtok(line, ",");
+                    char *currGenre = strtok(NULL, ",");
+                    char *status = strtok(NULL, ",");
+                    sprintf(response + strlen(response), "%s, %s, %s\n", title, currGenre,status);
+                }
+            }
+        }
+
+*  akan dieksekusi jika perintah yang diterima dari klien dimulai dengan `genre`. Variabel genre dibuat dengan mengabaikan 6 karakter pertama dari `buffer` (misalnya, jika `buffer` adalah "genre:Comedy", maka `genre` akan berisi "Comedy"). 
+
+
+       else if (strncmp(buffer, "day", 3) == 0) {
+       char *day = buffer + 4;
+       while (fgets(line, sizeof(line), fp)) {
+        char *currDay = strtok(line, ",");
+        char *title = strtok(NULL, ",");
+        if (strcmp(currDay, day) == 0) {
+            sprintf(response + strlen(response), "%s\n", title);
+           }
+         }
+       }
+
+* Akan dieksekusi jika perintah yang diterima dari klien dimulai dengan `day`. Variabel day dibuat dengan mengabaikan 4 karakter pertama dari `buffer` (misalnya, jika `buffer` adalah "day:Monday", maka `day` akan berisi "Rabu").
+  
+       else if (strncmp(buffer, "status", 6) == 0) {
+       char *title = buffer + 7;
+       rewind(fp); // Move file pointer to the beginning of the file
+       while (fgets(line, sizeof(line), fp)) {
+        char *currTitle = strtok(line, ",");
+        char *currGenre = strtok(NULL, ",");
+        char *status = strtok(NULL, ",");
+        if (strcmp(currTitle, title) == 0) {
+            sprintf(response, "%s, %s\n", title, status);
+            break;
+          }
+        }
+      }
+
+* Akan dieksekusi jika perintah yang diterima dari klien dimulai dengan `status`. Variabel title dibuat dengan mengabaikan 7 karakter pertama dari `buffer` (misalnya, jika `buffer` adalah "status:Naruto", maka `title` akan berisi "Naruto").
+
+      else if (strncmp(buffer, "add", 3) == 0) {
+        char *anime = buffer + 4;
+        FILE *fw = fopen("myanimelist.csv", "a");
+        fprintf(fw, "%s\n", anime);
+        fclose(fw);
+        strcat(response, "anime berhasil ditambahkan.");
+        logChange("ADD", anime);
+      }
+
+* Akan dieksekusi jika perintah yang diterima dari klien dimulai dengan `add`. Variabel anime dibuat dengan mengabaikan 4 karakter pertama dari `buffer` (misalnya, jika `buffer` adalah "add:Naruto,Comedy,Watching", maka `anime` akan berisi "Naruto,Comedy,Watching").
+
+        else if (strncmp(buffer, "edit", 4) == 0) {
+        char *oldTitle = buffer + 5;
+        char *newData = strchr(oldTitle, ',') + 1;
+        *strchr(oldTitle, ',') = '\0';
+
+        FILE *tempFile = fopen("temp.csv", "w");
+        while (fgets(line, sizeof(line), fp)) {
+            if (strncmp(line, oldTitle, strlen(oldTitle)) == 0) {
+                fprintf(tempFile, "%s,%s", oldTitle, newData);
+                logChange("EDIT", oldTitle);
+                logChange("EDIT", newData);
+            } else {
+                fprintf(tempFile, "\n%s", line);
+            }
+        }
+        fclose(fp);
+        fclose(tempFile);
+        remove("myanimelist.csv");
+        rename("temp.csv", "myanimelist.csv");
+        strcat(response, "anime berhasil diedit.");
+      }
+
+* Akan dieksekusi jika perintah yang diterima dari klien dimulai dengan `edit`. Variabel oldTitle dibuat dengan mengabaikan 5 karakter pertama dari `buffer` (misalnya, jika `buffer` adalah "edit:Naruto,Comedy,Watching", maka `oldTitle` akan berisi "Naruto").
+
+        else if (strncmp(buffer, "delete", 6) == 0) {
+        char *title = buffer + 7;
+        FILE *tempFile = fopen("temp.csv", "w");
+        while (fgets(line, sizeof(line), fp)) {
+            if (strncmp(line, title, strlen(title)) != 0) {
+                fprintf(tempFile, "%s", line);
+            } else {
+                logChange("DEL", title);
+            }
+        }
+        fclose(fp);
+        fclose(tempFile);
+        remove("myanimelist.csv");
+        rename("temp.csv", "myanimelist.csv");
+        strcat(response, "anime berhasil dihapus.");
+        }
+
+* Akan dieksekusi jika perintah yang diterima dari klien dimulai dengan `delete`. Variabel title dibuat dengan mengabaikan 7 karakter pertama dari `buffer` (misalnya, jika `buffer` adalah "delete:Naruto", maka `title` akan berisi "Naruto").
+
+        else {
+        strcat(response, "Invalid Command");
+       }
+
+* Jika perintah yang diterima dari klien tidak dikenali atau tidak sesuai dengan perintah yang didefinisikan sebelumnya, maka kode else akan dieksekusi. Di dalam kode ini akan menjalankan "Invalid Command".
