@@ -783,10 +783,21 @@ Contoh direktori akhir setelah dijalankan auth.c dan db.c:
 
         Setelah selesai, shared memory dilepaskan dari ruang alamat proses menggunakan `shmdt()`, dan kemudian dihapus menggunakan `shmctl()`.
 
-### Kendala Pengerjaan Soal 2
+### Kendala Pengerjaan Soal 1
 
+- Tidak ada.
 
-### Screenshot Hasil Pengerjaan Soal 2
+### Screenshot Hasil Pengerjaan Soal 1
+
+* File belobog_trashcan.csv dan osaka_parkinglot.csv
+
+![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/a0ab02b2-d68e-4259-b0a6-ae82606ad3e9)
+
+* auth.c
+
+    - Program menghapus dan menyalin nama file serta isi file yang ada di directory new-data
+
+        ![image](https://github.com/fioreenza/Sisop-3-2024-MH-IT25/assets/144349814/4de86f60-3877-4846-a7f2-5664e3cf60af)
 
 
 ## Soal 2
