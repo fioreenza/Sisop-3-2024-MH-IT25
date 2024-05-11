@@ -434,7 +434,7 @@ Selanjutnya, server mendengarkan koneksi masuk menggunakan fungsi listen(). Argu
 	}
 Server kemudian masuk ke dalam loop utama, yang bertugas untuk menerima dan mengelola koneksi dari klien. Fungsi accept() digunakan untuk menerima koneksi masuk. Jika koneksi berhasil diterima, soket klien baru disimpan dalam client_socket. Setelah koneksi diterima, proses fork digunakan untuk menangani koneksi tersebut dalam proses anak. Jika fork berhasil, proses anak akan menutup soket server, menangani koneksi menggunakan fungsi handle_client, menutup soket klien, dan kemudian keluar dengan status keberhasilan. Proses induk akan menutup soket klien dan kembali ke awal loop untuk menerima koneksi baru.
 
-
+## Soal 4
 **oleh Wira Samudra Siregar (5027231041)**
 ### Deskripsi Soal 1
 4. Lewis Hamilton 🏎 seorang wibu akut dan sering melewatkan beberapa episode yang karena sibuk menjadi asisten. Maka dari itu dia membuat list anime yang sedang ongoing (biar tidak lupa) dan yang completed (anime lama tapi pengen ditonton aja). Tapi setelah Lewis pikir-pikir malah kepikiran untuk membuat list anime. Jadi dia membuat file (harap diunduh) dan ingin menggunakan socket yang baru saja dipelajarinya untuk melakukan CRUD pada list animenya. 
