@@ -17,6 +17,10 @@ Pada Praktikum Modul 3 ini, kami diberikan tugas untuk mengerjakan Soal Shift Mo
 
 ## Soal 1
 ## Soal 2
+**oleh Fiorenza Adelia Nalle (5027231053)**
+### Deskripsi Soal 2
+### Penyelesaian Soal 2
+### Penjelasan Soal 2
 ## Soal 3
 **oleh Fiorenza Adelia Nalle (5027231053)**
 ### Deskripsi Soal 1
