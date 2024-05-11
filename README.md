@@ -453,14 +453,14 @@ Bagian ini untuk mengimport library yang diperlukan. Selain itu, sebuah konstant
 	    send(sockfd, buffer, strlen(buffer), 0);
 	    printf("[Driver]: [%s] [%s]\n", command, info);
 	}
-Fungsi send_command bertanggung jawab untuk mengirimkan perintah ke server. Perintah dan informasi tambahan dikonkatenasi ke dalam sebuah string menggunakan sprintf(), dan kemudian string tersebut dikirim melalui soket menggunakan fungsi send(). Selain itu, fungsi ini mencetak perintah dan informasi ke terminal.
+Fungsi ini mengirimkan perintah dan informasi tambahan ke server melalui soket. Perintah dan informasi disatukan dalam sebuah buffer menggunakan sprintf, lalu buffer tersebut dikirim melalui soket menggunakan fungsi send. Selain itu, fungsi ini juga mencetak perintah dan informasi ke terminal menggunakan printf.
 	
 	void receive_response(int sockfd) {
 	    char buffer[1024] = {0};
 	    read(sockfd, buffer, 1024);
 	    printf("[Paddock]: [%s]\n", buffer);
 	}
-Fungsi receive_response bertanggung jawab untuk menerima respons dari server. Respons diterima melalui soket menggunakan fungsi read() dan disimpan dalam buffer. Setelah itu, respons tersebut dicetak ke terminal.
+Fungsi receive_response bertanggung jawab untuk menerima respons dari server. Respons diterima melalui soket menggunakan fungsi read() dan disimpan dalam buffer. Setelah itu, respons tersebut dicetak ke terminal menggunakan printf.
 	
 	int main(int argc, char *argv[]) {
 	    if (argc != 5) {
@@ -476,7 +476,7 @@ Bagian ini untuk memeriksa jumlah argumen yang diberikan saat menjalankan progra
 	        perror("socket creation failed");
 	        return 1;
 	    }
-Soket client dan struktur alamat server dideklarasikan. Soket client kemudian dibuat menggunakan fungsi socket(). Jika pembuatan soket gagal, pesan kesalahan dicetak dan program keluar dengan kode kesalahan.
+Soket client dan struktur alamat server dideklarasikan. Soket client kemudian dibuat menggunakan fungsi socket(). Jika pembuatan soket gagal, pesan kesalahan dicetak dan program keluar dengan kode kesalahan. 
 
 	    memset(&server_address, '0', sizeof(server_address));
 	
@@ -487,8 +487,8 @@ Soket client dan struktur alamat server dideklarasikan. Soket client kemudian di
 	        perror("invalid address / address not supported");
 	        return 1;
 	    }
-Struktur alamat server diinisialisasi. Alamat IP server ditetapkan sebagai 127.0.0.1 yang merupakan alamat loopback untuk menghubungkan ke server yang berjalan pada mesin lokal. Port server ditentukan sebagai PORT yang telah didefinisikan sebelumnya.
-	
+Kode tersebut menginisialisasi alamat server untuk koneksi client-server. Pertama, memori struktur server_address dikosongkan. Selanjutnya, jenis alamat ditetapkan sebagai IPv4 dan nomor port server diatur. Alamat IP server, dalam hal ini alamat loopback 127.0.0.1, dikonversi dari format string menjadi bentuk biner menggunakan inet_pton(). Jika konversi gagal, program mencetak pesan kesalahan dan keluar dengan kode kesalahan.
+
 	    if (connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) {
 	        perror("connection failed");
 	        return 1;
