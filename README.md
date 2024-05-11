@@ -16,11 +16,14 @@ Pada Praktikum Modul 3 ini, kami diberikan tugas untuk mengerjakan Soal Shift Mo
 # Proses dan Hasil Praktikum Modul 2
 
 ## Soal 1
+
 ## Soal 2
 **oleh Fiorenza Adelia Nalle (5027231053)**
 ### Deskripsi Soal 2
 ### Penyelesaian Soal 2
 ### Penjelasan Soal 2
+### Hasil Pengerjaan Soal 2
+
 ## Soal 3
 **oleh Fiorenza Adelia Nalle (5027231053)**
 ### Deskripsi Soal 1
@@ -558,6 +561,9 @@ Kemudian, koneksi ke server dilakukan menggunakan fungsi connect(). Jika koneksi
 	    return 0;
 	} 
 Setelah koneksi berhasil dibuat, argumen dari baris perintah (argv) yang diberikan oleh pengguna diambil. Perintah dan informasi dari argumen tersebut kemudian dikirimkan ke server menggunakan fungsi send_command. Setelah itu, respons dari server diterima menggunakan fungsi receive_response. Terakhir, soket client ditutup dan program keluar dengan kode berhasil.
+
+### Hasil Pengerjaan Soal 3
+
 
 ## Soal 4
 **oleh Wira Samudra Siregar (5027231041)**
