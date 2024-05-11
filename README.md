@@ -293,6 +293,53 @@ Info: 55%
 	    return 0;
 	}
 
+### Penjelasan actions.c
+
+	#include <stdio.h>
+	#include <string.h>
+	
+	char* gap(float distance) {
+	    if (distance < 3.5)
+	        return "Gogogo";
+	    else if (distance >= 3.5 && distance <= 10)
+	        return "Push";
+	    else
+	        return "Stay out of trouble";
+	}
+Fungsi ini memberikan respons kepada driver berdasarkan gap jaraknya. Jika jaraknya kurang dari 3.5, fungsi akan mengembalikan "Gogogo". Jika jaraknya antara 3.5 dan 10, fungsi akan mengembalikan "Push". Jika jaraknya lebih dari 10, fungsi akan mengembalikan "Stay out of trouble".
+	
+	char* fuel(float fuel_percentage) {
+	    if (fuel_percentage > 80)
+	        return "Push Push Push";
+	    else if (fuel_percentage >= 50 && fuel_percentage <= 80)
+	        return "You can go";
+	    else
+	        return "Conserve Fuel";
+	}
+Fungsi ini memberikan respons kepada driver berdasarkan persentase bahan bakar yang tersisa (fuel_percentage). Jika persentase bahan bakarnya lebih dari 80, fungsi akan mengembalikan "Push Push Push". Jika persentase bahan bakarnya antara 50 dan 80, fungsi akan mengembalikan "You can go". Jika persentase bahan bakarnya kurang dari 50, fungsi akan mengembalikan "Conserve Fuel".
+	
+	char* tire(int tire_usage) {
+	    if (tire_usage > 80)
+	        return "Go Push Go Push";
+	    else if (tire_usage >= 50 && tire_usage <= 80)
+	        return "Good Tire Wear";
+	    else if (tire_usage >= 30 && tire_usage < 50)
+	        return "Conserve Your Tire";
+	    else
+	        return "Box Box Box";
+	}
+Fungsi ini memberikan respons kepada driver berdasarkan penggunaan ban (tire_usage). Jika penggunaan ban lebih dari 80, fungsi akan mengembalikan "Go Push Go Push". Jika penggunaan ban antara 50 dan 80, fungsi akan mengembalikan "Good Tire Wear". Jika penggunaan ban antara 30 dan 50, fungsi akan mengembalikan "Conserve Your Tire". Jika penggunaan ban kurang dari 30, fungsi akan mengembalikan "Box Box Box".
+
+	char* tire_change(char* current_tire) {
+	    if (strcmp(current_tire, "Soft") == 0)
+	        return "Mediums Ready";
+	    else if (strcmp(current_tire, "Medium") == 0)
+	        return "Box for Softs";
+	    else
+	        return "Invalid tire type";
+	}
+Fungsi ini memberikan respons kepada driver berdasarkan jenis ban yang saat ini digunakan (current_tire). Jika driver saat ini menggunakan ban "Soft", fungsi akan mengembalikan "Mediums Ready". Jika driver saat ini menggunakan ban "Medium", fungsi akan mengembalikan "Box for Softs". Jika jenis ban tidak dikenali, fungsi akan mengembalikan "Invalid tire type".
+
 ### Penjelasan paddock.c (server)
 
 	#include <unistd.h>
